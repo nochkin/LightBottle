@@ -1,18 +1,28 @@
 #include "FastLED.h"
 
-#define LEDS_NUM 4
-#define LEDS_PIN 12
-#define LEDS_SATURATION 32
-#define LEDS_BRIGHTNESS 96
+#define LEDS1_NUM 25
+#define LEDS1_PIN 11
 
-CRGB leds[LEDS_NUM];
+#define LEDS2_NUM 40
+#define LEDS2_PIN 14
+
+#define LEDS_SATURATION 160
+#define LEDS_BRIGHTNESS 128
+
+CRGB leds[LEDS1_NUM + LEDS2_NUM];
 byte hueCurrent = 0;
 byte hueDestination = 0;
-char hueStep = 1;
+char hueStep = 5;
+
+#define UPDATE_DELAY 50
 
 void setup() {
-  FastLED.addLeds<NEOPIXEL, LEDS_PIN>(leds, LEDS_NUM);
-  for (int ii=0; ii<LEDS_NUM; ii++) {
+  FastLED.addLeds<WS2801, LEDS1_PIN, 13, RGB>(leds, 0, LEDS1_NUM);
+  FastLED.addLeds<WS2811, LEDS2_PIN, RGB>(leds, LEDS1_NUM, LEDS2_NUM);
+  // Adjust data rate if you have issues: 0-fast, 7-slow
+  //FastLED.setDataRate(3);
+  
+  for (int ii=0; ii< (LEDS1_NUM + LEDS2_NUM); ii++) {
     leds[ii] = CHSV(hueCurrent, LEDS_SATURATION, LEDS_BRIGHTNESS);
   }
   randomSeed(analogRead(0));
@@ -26,12 +36,12 @@ void loop() {
   hueCurrent += hueStep;
   pushLed(hueCurrent);
   FastLED.show();
-  delay(100);
+  delay(UPDATE_DELAY);
 }
 
 void pushLed(byte hueValue) {
-  for (int ii=0; ii<(LEDS_NUM-1); ii++) {
+  for (int ii=0; ii<(LEDS1_NUM + LEDS2_NUM - 1); ii++) {
     leds[ii] = leds[ii+1];
   }
-  leds[LEDS_NUM-1].setHSV(hueValue, LEDS_SATURATION, LEDS_BRIGHTNESS);
+  leds[LEDS1_NUM + LEDS2_NUM - 1].setHSV(hueValue, LEDS_SATURATION, LEDS_BRIGHTNESS);
 }
